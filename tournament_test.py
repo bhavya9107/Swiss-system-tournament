@@ -23,25 +23,37 @@ def testCount():
             "countPlayers should return numeric zero, not string '0'.")
     if c != 0:
         raise ValueError("After deletion, countPlayers should return zero.")
-    print "1. countPlayers() returns 0 after initial deletePlayers() execution."
+    print """
+    1. countPlayers() 
+    returns 0 after initial 
+    deletePlayers() execution."""
     registerPlayer("Chandra Nalaar")
     c = countPlayers()
     if c != 1:
         raise ValueError(
-            "After one player registers, countPlayers() should be 1. Got {c}".format(c=c))
-    print "2. countPlayers() returns 1 after one player is registered."
+            """After one player registers, 
+            countPlayers() should be 1. 
+            Got {c}""".format(c=c))
+    print """
+    2. countPlayers() 
+    returns 1 after one player is registered."""
     registerPlayer("Jace Beleren")
     c = countPlayers()
     if c != 2:
         raise ValueError(
-            "After two players register, countPlayers() should be 2. Got {c}".format(c=c))
+            """After two players register, 
+            countPlayers() should be 
+            2. Got {c}""".format(c=c))
     print "3. countPlayers() returns 2 after two players are registered."
     deletePlayers()
     c = countPlayers()
     if c != 0:
         raise ValueError(
             "After deletion, countPlayers should return zero.")
-    print "4. countPlayers() returns zero after registered players are deleted.\n5. Player records successfully deleted."
+    print """
+    4. countPlayers() returns zero 
+    after registered players are deleted.\n5. 
+    Player records successfully deleted."""
 
 
 def testStandingsBeforeMatches():
@@ -55,8 +67,10 @@ def testStandingsBeforeMatches():
     registerPlayer("Randy Schwartz")
     standings = playerStandings()
     if len(standings) < 2:
-        raise ValueError("Players should appear in playerStandings even before "
-                         "they have played any matches.")
+        raise ValueError("""
+            Players should 
+            appear in playerStandings 
+            even before they have played any matches.""")
     elif len(standings) > 2:
         raise ValueError("Only registered players should appear in standings.")
     if len(standings[0]) != 4:
@@ -66,9 +80,11 @@ def testStandingsBeforeMatches():
         raise ValueError(
             "Newly registered players should have no matches or wins.")
     if set([name1, name2]) != set(["Melpomene Murray", "Randy Schwartz"]):
-        raise ValueError("Registered players' names should appear in standings, "
-                         "even if they have no matches played.")
-    print "6. Newly registered players appear in the standings with no matches."
+        raise ValueError("""Registered players' 
+            names should appear in standings, 
+            even if they have no matches played.""")
+    print """6. Newly registered players 
+    appear in the standings with no matches."""
 
 
 def testReportMatches():
@@ -104,11 +120,16 @@ def testReportMatches():
     for (i, n, w, m) in standings:
         if m != 0:
             raise ValueError(
-                "After deleting matches, players should have zero matches recorded.")
+                """After deleting matches, 
+                players should have 
+                zero matches recorded.""")
         if w != 0:
             raise ValueError(
-                "After deleting matches, players should have zero wins recorded.")
-    print "8. After match deletion, player standings are properly reset.\n9. Matches are properly deleted."
+                """After deleting matches, players 
+                should have zero wins recorded.""")
+    print """8. After match deletion, 
+    player standings are properly reset.
+    \n9. Matches are properly deleted."""
 
 
 def testPairings():
@@ -130,7 +151,10 @@ def testPairings():
     pairings = swissPairings()
     if len(pairings) != 4:
         raise ValueError(
-            "For eight players, swissPairings should return 4 pairs. Got {pairs}".format(pairs=len(pairings)))
+            """For eight players, 
+            swissPairings should 
+            return 4 pairs. 
+            Got {pairs}""".format(pairs=len(pairings)))
     reportMatch(id1, id2)
     reportMatch(id3, id4)
     reportMatch(id5, id6)
@@ -138,7 +162,9 @@ def testPairings():
     pairings = swissPairings()
     if len(pairings) != 4:
         raise ValueError(
-            "For eight players, swissPairings should return 4 pairs. Got {pairs}".format(pairs=len(pairings)))
+            """For eight players, swissPairings 
+            should return 4 pairs. 
+            Got {pairs}""".format(pairs=len(pairings)))
     [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4),
      (pid5, pname5, pid6, pname6), (pid7, pname7, pid8, pname8)] = pairings
     possible_pairs = set([frozenset([id1, id3]), frozenset([id1, id5]),
