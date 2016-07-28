@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# 
+#
 # tournament.py -- implementation of a Swiss-system tournament
 #
 
@@ -11,19 +11,19 @@ def connect():
     return psycopg2.connect("dbname=tournament")
 
 
-DB=connect()
-c=DB.cursor()
-    for p in Players:
-        p.wins=c.execute("select count(*) as num from Matches where p1 = p.id or p2= p.id and player_win=p.id;")
-        p.loses=c.execute("select count(*) as num from Matches where p1 = p.id or p2= p.id and player_loses=p.id;")
-        p.ties=c.execute("select count(*) as num from Matches where p1 = p.id or p2= p.id and is_tie=True;")
-        p.matches_played=c.execute("select count(*) as matches from Matches where p1= p.id or p2=p.id;")
+DB = connect()
+c = DB.cursor()
+for p in Players:
+    p.wins = c.execute("select count(*) as num from Matches where p1 = p.id or p2= p.id and player_win=p.id;")  # noqa
+    p.loses = c.execute("select count(*) as num from Matches where p1 = p.id or p2= p.id and player_loses=p.id;")  # noqa
+    p.ties = c.execute("select count(*) as num from Matches where p1 = p.id or p2= p.id and is_tie=True;")  # noqa
+    p.matches_played = c.execute("select count(*) as matches from Matches where p1= p.id or p2=p.id;")  # noqa
 
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    DB=connect()
-    c=DB.cursor()
+    DB = connect()
+    c = DB.cursor()
     c.execute("delete * from Matches;")
     DB.commit()
     DB.close()
@@ -31,8 +31,8 @@ def deleteMatches():
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    DB=connect()
-    c=DB.cursor()
+    DB = connect()
+    c = DB.cursor()
     c.execute("delete * from Players;")
     DB.commit()
     DB.close()
@@ -40,25 +40,27 @@ def deletePlayers():
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    DB=connect()
-    c=DB.cursor()
-    n=c.execute("select count(*) as num from Players;")
+    DB = connect()
+    c = DB.cursor()
+    n = c.execute("select count(*) as num from Players;")
+    number = n.fetchone()[0]
     DB.close()
-    return n
+    return number
 
 
 def registerPlayer(name):
     """Adds a player to the tournament database.
-  
+
     The database assigns a unique serial id number for the player.  (This
     should be handled by your SQL database schema, not in your Python code.)
-  
+
     Args:
       name: the player's full name (need not be unique).
     """
-    DB=connect()
-    c=DB.cursor()
-    c.execute("insert into Players(name, wins, loses, ties, matches_played) value(name, 0, 0, 0, 0);")
+    DB = connect()
+    c = DB.cursor()
+    c.execute(
+        "insert into Players(name, wins, loses, ties, matches_played) value(name, 0, 0, 0, 0);")  # noqa
     DB.commit()
     DB.close()
 
@@ -76,44 +78,46 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    DB=connect()
-    c=DB.cursor()
-    results= c.execute("select id, name, wins,matches_played from Players order by wins;")
+    DB = connect()
+    c = DB.cursor()
+    c.execute(
+        "select id, name, wins,matches_played from Players order by wins;")
+    results = c.fetchall()
     return results
 
 
-def reportMatch(winner, loser,tie):
+def reportMatch(winner, loser, tie):
     """Records the outcome of a single match between two players.
 
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    DB=connect()
-    c=DB.cursor()
+    DB = connect()
+    c = DB.cursor()
     for p in Players:
-        if p.id==int(winner):
-            p.wins+=1
-            p.matches_played+=1
-        elif p.id==int(loser):
-            p.loses+=1
-            p.matches_played+=1
-        elif tie==True:
-            if p.id==int(Matches.p1) or p.id==int(Matches.p2):
-                p.ties+=1
-                p.matches_played+=1
+        if p.id == int(winner):
+            p.wins += 1
+            p.matches_played += 1
+        elif p.id == int(loser):
+            p.loses += 1
+            p.matches_played += 1
+        elif tie == True:
+            if p.id == int(Matches.p1) or p.id == int(Matches.p2):
+                p.ties += 1
+                p.matches_played += 1
     DB.commit()
     DB.close()
 
 
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
-  
+
     Assuming that there are an even number of players registered, each player
     appears exactly once in the pairings.  Each player is paired with another
     player with an equal or nearly-equal win record, that is, a player adjacent
     to him or her in the standings.
-  
+
     Returns:
       A list of tuples, each of which contains (id1, name1, id2, name2)
         id1: the first player's unique id
@@ -121,7 +125,17 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
-    DB=connect()
-    c=DB.cursor()
-    result=playerStandings()
-    c.execute(";")
+    results = []
+    pairings = []
+    DB = connect()
+    c = DB.cursor()
+    results = playerStandings()
+    count = len(results)
+
+    for x in range(0, count - 1, 2):
+        paired_list = (
+            results[x][0], results[x][1], results[x + 1][0], results[x + 1][1])
+        pairings.append(paired_list)
+
+    DB.close()
+    return pairings
