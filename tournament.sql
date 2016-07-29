@@ -24,17 +24,18 @@ create view total_wins as
     from Players left join Matches
     on Players.id = Matches.winner
     group by Players.id, Matches.winner
-    order by Players.id
+    order by Players.id;
 
 create view total_loses as
    	select Players.id as player, count(Matches.loser) as losses
     from Players left join Matches
     on Players.id = Matches.loser
     group by Players.id, Matches.loser
-    order by Players.id
+    order by Players.id;
+    
 create view matches_played as
     select Players.id as player, count(Matches) as matches
     from Players left join Matches
     on(Players.id=Matches.winner) or(Players.id=Matches.loser)
     group by Players.id
-    order by Players.id asc
+    order by Players.id asc;
