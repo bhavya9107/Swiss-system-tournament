@@ -8,29 +8,29 @@ import psycopg2
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+    try:
+        return psycopg2.connect("dbname=tournament")
+    except:
+        print("Connection failed")
 
 
-def enter_values():
+@contextmanager
+def get_cursor():
+    """
+    Query helper function using context lib. Creates a cursor from a database
+    connection object, and performs queries using that cursor.
+    """
     DB = connect()
     c = DB.cursor()
-    for p in Records:
-        p.wins = c.execute("""
-            select count(*) as num 
-            from Matches 
-            where p1 = p.id or p2= p.id 
-            and player_win=p.id;""")
-        p.loses = c.execute("""
-            select count(*) as num 
-            from Matches 
-            where p1 = p.id or p2= p.id and 
-            player_loses=p.id;""")
-        p.matches_played = c.execute("""
-            select count(*) as matches 
-            from Matches 
-            where p1= p.id or 
-            p2=p.id;""")
-enter_values()
+    try:
+        yield c
+    except:
+        raise
+    else:
+        DB.commit()
+    finally:
+        c.close()
+        DB.close()
 
 
 def deleteMatches():
@@ -44,21 +44,16 @@ def deleteMatches():
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    DB = connect()
-    c = DB.cursor()
-    c.execute("delete from Players;")
-    DB.commit()
-    DB.close()
+    with get_cursor as c:
+        c.execute("delete from Players;")
 
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    DB = connect()
-    c = DB.cursor()
-    c.execute("select count(*) as num from Players;")
-    number = c.fetchone()[0]
-    DB.close()
-    return number
+    with get_cursor as c:
+        c.execute("select count(*) from Players;")
+        number = c.fetchone()[0]
+        return number
 
 
 def registerPlayer(name):
@@ -70,18 +65,11 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-    DB = connect()
-    c = DB.cursor()
-    c.execute("""
-        insert into 
-        Players (name) 
-        VALUES (%s);""", (name,))
-    c.execute("""
-        insert into 
-        Players (wins, loses, matches_played) 
-        VALUES (0, 0, 0, 0);""")
-    DB.commit()
-    DB.close()
+    with get_cursor as c:
+        c.execute("""
+            insert into 
+            Players (name) 
+            VALUES (%s);""", (name,))
 
 
 def playerStandings():
@@ -97,13 +85,15 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    DB = connect()
-    c = DB.cursor()
-    c.execute("""select Players.id, Players.name, Records.wins,Records.matches_played 
-        from Players join Records on Players.id=Records.id 
-        order by Records.wins;""")
-    results = c.fetchall()
-    return results
+    with get_cursor as c:
+        c.execute("""select Players.id, Players.name, total_wins.wins, matches_played.matches
+            from Players
+            left join total_wins on Players.id = total_wins.player
+            left join matches_played on Players.id = matches_played.player
+            group by Players.id, Players.name, total_wins.wins, matches_played.matches
+            order by total_wins.wins desc;""")
+        results = c.fetchall()
+        return results
 
 
 def reportMatch(winner, loser):
@@ -113,11 +103,8 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    DB = connect()
-    c.execute("update Records set wins+=1, matches_played+=1 where id=winner;")
-    c.execute("update Records set loses+=1, matches_played+=1 where id=loser;")
-    DB.commit()
-    DB.close()
+    with get_cursor as c:
+        c.execute("insert into Matches (winner,loser) values (%s,%s)", (int(winner),int(loser),))
 
 
 def swissPairings():
@@ -137,15 +124,12 @@ def swissPairings():
     """
     results = []
     pairings = []
-    DB = connect()
-    c = DB.cursor()
-    results = playerStandings()
-    count = len(results)
+    with get_cursor as c:
+        results = playerStandings()
+        count = len(results)
 
-    for x in range(0, count - 1, 2):
-        paired_list = (
-            results[x][0], results[x][1], results[x + 1][0], results[x + 1][1])
-        pairings.append(paired_list)
-
-    DB.close()
+        for x in range(0, count - 1, 2):
+            paired_list = (
+                results[x][0], results[x][1], results[x + 1][0], results[x + 1][1])
+            pairings.append(paired_list)
     return pairings
