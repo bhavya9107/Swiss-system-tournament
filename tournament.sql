@@ -9,14 +9,14 @@ create database tournament;
 create table Players(
 	id serial primary key,
 	name text
-)
+);
 ----------------------------------------------------------------------------------------------------------------------
 -- involve record of each match
 create table Matches(
 	match_id serial primary key,
 	winner integer references Players(id),
 	loser integer references Players(id)
-)
+);
 ----------------------------------------------------------------------------------------------------------------------
 -- keeps record of each player
 create view total_wins as
