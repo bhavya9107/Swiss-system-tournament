@@ -29,7 +29,7 @@ Contains the test cases for tournament.py
   1. Type `cd /vagrant/tournament`
 4. Open PSQL and run the tournament.sql 
   1. type `psql`
-  2. copy the contents of tournament.sql and paste in to the terminal window
+  2. type `psql -f tournament.sql` in terminal to import the tournament database
   3. type `\q` to quit out of PSQL 
 5. Run the tests
   1. In the terminal type `python tournament_test.py`
