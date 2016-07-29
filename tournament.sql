@@ -1,6 +1,6 @@
 --Recreate database and drop previous if exists
-create database tournament;
 drop database if exists tournament;
+create database tournament;
 \c tournament
 
 -- Table definitions for the tournament project.
